@@ -1,7 +1,8 @@
 import 'dart:convert';
+
 import 'package:http/http.dart' as http;
 
-import '../widgets/todo_model.dart';
+import '../models/todo_model.dart';
 
 class TodoRemoteDataSource {
   final http.Client _client;
@@ -20,7 +21,7 @@ class TodoRemoteDataSource {
   }
 
   Future<TodoModel> addTodo(String title) async {
-    // JSONPlaceholder não cria de verdade, mas responde com um id
+    // JSONPlaceholder nao cria de verdade, mas responde com um id
     final uri = Uri.parse('https://jsonplaceholder.typicode.com/todos');
     final res = await _client.post(
       uri,
