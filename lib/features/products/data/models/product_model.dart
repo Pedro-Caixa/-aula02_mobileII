@@ -1,28 +1,34 @@
-class Product {
-  const Product({
-    this.id,
-    required this.name,
-    required this.price,
-    required this.description,
-    this.imageUrl,
-    this.category,
+import '../../domain/entities/product.dart';
+
+class ProductModel extends Product {
+  const ProductModel({
+    super.id,
+    required super.name,
+    required super.price,
+    required super.description,
+    super.imageUrl,
+    super.category,
   });
 
-  final String? id;
-  final String name;
-  final double price;
-  final String description;
-  final String? imageUrl;
-  final String? category;
-
-  factory Product.fromJson(Map<String, dynamic> json) {
-    return Product(
+  factory ProductModel.fromJson(Map<String, dynamic> json) {
+    return ProductModel(
       id: json['id']?.toString(),
       name: (json['name'] ?? json['title'] ?? '').toString(),
       price: _parsePrice(json['price']),
       description: (json['description'] ?? '').toString(),
       imageUrl: (json['image'] ?? json['imageUrl'])?.toString(),
       category: json['category']?.toString(),
+    );
+  }
+
+  factory ProductModel.fromEntity(Product product) {
+    return ProductModel(
+      id: product.id,
+      name: product.name,
+      price: product.price,
+      description: product.description,
+      imageUrl: product.imageUrl,
+      category: product.category,
     );
   }
 
@@ -41,24 +47,6 @@ class Product {
     }
 
     return map;
-  }
-
-  Product copyWith({
-    String? id,
-    String? name,
-    double? price,
-    String? description,
-    String? imageUrl,
-    String? category,
-  }) {
-    return Product(
-      id: id ?? this.id,
-      name: name ?? this.name,
-      price: price ?? this.price,
-      description: description ?? this.description,
-      imageUrl: imageUrl ?? this.imageUrl,
-      category: category ?? this.category,
-    );
   }
 
   static double _parsePrice(dynamic rawPrice) {

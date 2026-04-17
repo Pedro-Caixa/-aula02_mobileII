@@ -2,22 +2,19 @@ import 'dart:convert';
 
 import 'package:http/http.dart' as http;
 
-import '../models/product.dart';
+import '../models/product_model.dart';
 
-class ProductService {
-  ProductService({
+class ProductRemoteDataSource {
+  ProductRemoteDataSource({
     http.Client? client,
     this.baseUrl = 'https://fakestoreapi.com/products',
-  })  : _client = client ?? http.Client(),
-        _ownsClient = client == null;
+  }) : _client = client ?? http.Client();
 
   final http.Client _client;
-  final bool _ownsClient;
   final String baseUrl;
 
-  Future<List<Product>> fetchProducts() async {
+  Future<List<ProductModel>> fetchProducts() async {
     final response = await _client.get(Uri.parse(baseUrl));
-
     if (response.statusCode != 200) {
       throw Exception('Falha ao carregar produtos: ${response.statusCode}');
     }
@@ -29,11 +26,11 @@ class ProductService {
 
     return decoded
         .whereType<Map<String, dynamic>>()
-        .map(Product.fromJson)
+        .map(ProductModel.fromJson)
         .toList();
   }
 
-  Future<Product> addProduct(Product product) async {
+  Future<ProductModel> addProduct(ProductModel product) async {
     final payload = product.toJson()..remove('id');
 
     final response = await _client.post(
@@ -51,10 +48,10 @@ class ProductService {
       throw Exception('Resposta inesperada ao cadastrar produto.');
     }
 
-    return Product.fromJson(decoded);
+    return ProductModel.fromJson(decoded);
   }
 
-  Future<Product> updateProduct(Product product) async {
+  Future<ProductModel> updateProduct(ProductModel product) async {
     if (product.id == null || product.id!.isEmpty) {
       throw Exception('Produto sem ID para atualização.');
     }
@@ -74,20 +71,13 @@ class ProductService {
       throw Exception('Resposta inesperada ao atualizar produto.');
     }
 
-    return Product.fromJson(decoded);
+    return ProductModel.fromJson(decoded);
   }
 
   Future<void> deleteProduct(String id) async {
     final response = await _client.delete(Uri.parse('$baseUrl/$id'));
-
     if (response.statusCode != 200 && response.statusCode != 204) {
       throw Exception('Falha ao excluir produto: ${response.statusCode}');
-    }
-  }
-
-  void dispose() {
-    if (_ownsClient) {
-      _client.close();
     }
   }
 }

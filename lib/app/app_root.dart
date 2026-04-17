@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 
-import '../screens/product_list_screen.dart';
+import '../features/products/presentation/pages/product_list_page.dart';
 
 class AppRoot extends StatelessWidget {
   const AppRoot({super.key});
@@ -10,7 +10,7 @@ class AppRoot extends StatelessWidget {
     return MaterialApp(
       title: 'TODO Refatoração',
       theme: ThemeData(useMaterial3: true),
-      home: const ProductListScreen(),
+      home: const ProductListPage(),
     );
   }
 }

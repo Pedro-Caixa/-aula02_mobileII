@@ -1,0 +1,220 @@
+@startuml
+hide empty members
+skinparam classAttributeIconSize 0
+skinparam packageStyle rectangle
+left to right direction
+
+package "App" {
+  class AppRoot {
+    +build(context): Widget
+  }
+}
+
+package "Core" {
+  class AppError {
+    +message: String
+    +toString(): String
+  }
+}
+
+package "Products - Model" {
+  class Product {
+    +id: String?
+    +name: String
+    +price: double
+    +description: String
+    +imageUrl: String?
+    +category: String?
+    +fromJson(json): Product
+    +toJson(): Map<String, dynamic>
+    +copyWith(...): Product
+    -_parsePrice(rawPrice): double
+  }
+}
+
+package "Products - Service" {
+  class ProductService {
+    -_client: http.Client
+    -_ownsClient: bool
+    +baseUrl: String
+    +fetchProducts(): Future<List<Product>>
+    +addProduct(product: Product): Future<Product>
+    +updateProduct(product: Product): Future<Product>
+    +deleteProduct(id: String): Future<void>
+    +dispose(): void
+  }
+}
+
+package "Products - UI" {
+  class ProductListScreen {
+    +createState(): State<ProductListScreen>
+  }
+
+  class _ProductListScreenState {
+    -_service: ProductService
+    -_productsFuture: Future<List<Product>>
+    +initState(): void
+    +dispose(): void
+    -_reload(): Future<void>
+    -_openForm(product: Product?): Future<void>
+    -_delete(product: Product): Future<void>
+    +build(context): Widget
+  }
+
+  class ProductFormScreen {
+    +service: ProductService
+    +product: Product?
+    +isEditing: bool
+    +createState(): State<ProductFormScreen>
+  }
+
+  class _ProductFormScreenState {
+    -_formKey: GlobalKey<FormState>
+    -_nameController: TextEditingController
+    -_priceController: TextEditingController
+    -_descriptionController: TextEditingController
+    -_imageController: TextEditingController
+    -_categoryController: TextEditingController
+    -_isSaving: bool
+    +initState(): void
+    +dispose(): void
+    -_submit(): Future<void>
+    +build(context): Widget
+  }
+
+  class ProductDetailScreen {
+    +product: Product
+    +build(context): Widget
+  }
+
+  class ProductCard {
+    +product: Product
+    +onTap: VoidCallback
+    +onEdit: VoidCallback
+    +onDelete: VoidCallback
+    +build(context): Widget
+  }
+
+  class _ProductImage {
+    +url: String?
+    +build(context): Widget
+  }
+}
+
+package "Todos - Domain" {
+  class Todo {
+    +id: int
+    +title: String
+    +completed: bool
+    +copyWith(id, title, completed): Todo
+  }
+
+  abstract class TodoRepository {
+    +fetchTodos(forceRefresh: bool): Future<TodoFetchResult>
+    +addTodo(title: String): Future<Todo>
+    +updateCompleted(id: int, completed: bool): Future<void>
+  }
+
+  class TodoFetchResult {
+    +todos: List<Todo>
+    +lastSyncLabel: String?
+  }
+}
+
+package "Todos - Data" {
+  class TodoModel {
+    +fromJson(json): TodoModel
+    +toJson(): Map<String, dynamic>
+  }
+
+  class TodoRemoteDataSource {
+    -_client: http.Client
+    +fetchTodos(): Future<List<TodoModel>>
+    +addTodo(title: String): Future<TodoModel>
+    +updateCompleted(id: int, completed: bool): Future<void>
+  }
+
+  class TodoLocalDataSource {
+    -_kLastSync: String
+    +saveLastSync(dt: DateTime): Future<void>
+    +getLastSync(): Future<DateTime?>
+  }
+
+  class TodoRepositoryImpl {
+    -_remote: TodoRemoteDataSource
+    -_local: TodoLocalDataSource
+    +fetchTodos(forceRefresh: bool): Future<TodoFetchResult>
+    +addTodo(title: String): Future<Todo>
+    +updateCompleted(id: int, completed: bool): Future<void>
+  }
+}
+
+package "Todos - Presentation" {
+  class TodoViewModel {
+    -_repo: TodoRepositoryImpl
+    +isLoading: bool
+    +errorMessage: String?
+    +items: List<Todo>
+    +lastSyncLabel: String?
+    +loadTodos(forceRefresh: bool): Future<void>
+    +addTodo(title: String): Future<void>
+    +toggleCompleted(id: int, completed: bool): Future<void>
+  }
+
+  class TodosPage {
+    +createState(): State<TodosPage>
+  }
+
+  class _TodosPageState {
+    +initState(): void
+    +build(context): Widget
+    -_body(vm: TodoViewModel): Widget
+  }
+
+  class AddTodoDialog {
+    +createState(): State<AddTodoDialog>
+  }
+
+  class _AddTodoDialogState {
+    -ctrl: TextEditingController
+    +dispose(): void
+    +build(context): Widget
+    -_ok(): void
+  }
+}
+
+TodoModel --|> Todo
+TodoRepositoryImpl ..|> TodoRepository
+
+AppRoot ..> ProductListScreen
+
+ProductListScreen --> _ProductListScreenState
+ProductFormScreen --> _ProductFormScreenState
+ProductCard --> _ProductImage
+
+_ProductListScreenState *-- ProductService
+_ProductListScreenState ..> Product
+_ProductListScreenState ..> ProductCard
+_ProductListScreenState ..> ProductFormScreen
+_ProductListScreenState ..> ProductDetailScreen
+
+ProductFormScreen o-- ProductService
+ProductFormScreen o-- Product
+_ProductFormScreenState ..> Product
+ProductDetailScreen o-- Product
+ProductCard o-- Product
+
+TodoRepositoryImpl *-- TodoRemoteDataSource
+TodoRepositoryImpl *-- TodoLocalDataSource
+TodoRepositoryImpl ..> Todo
+TodoRepositoryImpl ..> TodoModel
+
+TodoViewModel *-- TodoRepositoryImpl
+TodoViewModel ..> Todo
+
+TodosPage --> _TodosPageState
+AddTodoDialog --> _AddTodoDialogState
+_TodosPageState ..> TodoViewModel
+_TodosPageState ..> AddTodoDialog
+
+@enduml

@@ -1,25 +1,24 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 
-import '../models/product.dart';
-import '../services/product_service.dart';
+import '../../domain/entities/product.dart';
+import '../viewmodels/product_viewmodel.dart';
 
-class ProductFormScreen extends StatefulWidget {
-  const ProductFormScreen({
+class ProductFormPage extends StatefulWidget {
+  const ProductFormPage({
     super.key,
-    required this.service,
     this.product,
   });
 
-  final ProductService service;
   final Product? product;
 
   bool get isEditing => product != null;
 
   @override
-  State<ProductFormScreen> createState() => _ProductFormScreenState();
+  State<ProductFormPage> createState() => _ProductFormPageState();
 }
 
-class _ProductFormScreenState extends State<ProductFormScreen> {
+class _ProductFormPageState extends State<ProductFormPage> {
   final _formKey = GlobalKey<FormState>();
   late final TextEditingController _nameController;
   late final TextEditingController _priceController;
@@ -59,7 +58,6 @@ class _ProductFormScreenState extends State<ProductFormScreen> {
     setState(() => _isSaving = true);
 
     final price = double.parse(_priceController.text.replaceAll(',', '.'));
-
     final product = Product(
       id: widget.product?.id,
       name: _nameController.text.trim(),
@@ -73,25 +71,22 @@ class _ProductFormScreenState extends State<ProductFormScreen> {
           : _categoryController.text.trim(),
     );
 
-    try {
-      if (widget.isEditing) {
-        await widget.service.updateProduct(product);
-      } else {
-        await widget.service.addProduct(product);
-      }
+    final vm = context.read<ProductViewModel>();
+    final success = widget.isEditing
+        ? await vm.editProduct(product)
+        : await vm.createProduct(product);
 
-      if (!mounted) return;
+    if (!mounted) return;
+    if (success) {
       Navigator.of(context).pop(true);
-    } catch (e) {
-      if (!mounted) return;
+    } else {
+      final message = vm.errorMessage ?? 'Erro ao salvar produto.';
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Erro ao salvar produto: $e')),
+        SnackBar(content: Text(message)),
       );
-    } finally {
-      if (mounted) {
-        setState(() => _isSaving = false);
-      }
     }
+
+    setState(() => _isSaving = false);
   }
 
   @override

@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 
-import '../models/product.dart';
+import '../../domain/entities/product.dart';
 
-class ProductDetailScreen extends StatelessWidget {
-  const ProductDetailScreen({
+class ProductDetailPage extends StatelessWidget {
+  const ProductDetailPage({
     super.key,
     required this.product,
   });
